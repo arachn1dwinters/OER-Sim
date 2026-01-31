@@ -62,11 +62,27 @@ class OERSimulation:
         }
         
         self.signals = {
-            'github': {'hours': 200, 'boost': 0.12},
-            'projects': {'hours': 150, 'boost': 0.08},
-            'opensource': {'hours': 250, 'boost': 0.15},
-            'freelance': {'hours': 300, 'boost': 0.10},
-            'certification': {'hours': 70, 'cost': 1000, 'boost': 0.18}
+            'certification': {
+                'hours': 80,
+                'cost': 500,
+                'boost': 0.25
+            },
+            'freelance': {
+                'hours': 300,
+                'boost': 0.15
+            },
+            'opensource': {
+                'hours': 250,
+                'boost': 0.10
+            },
+            'github': {
+                'hours': 200,
+                'boost': 0.05
+            },
+            'projects': {
+                'hours': 150,
+                'boost': 0.03
+            }
         }
         
     def initialize_agents(self):
