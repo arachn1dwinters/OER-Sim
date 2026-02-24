@@ -29,8 +29,8 @@ class Agent:
     quarters_since_job_change: int
     
 class OERSimulation:
-    def __init__(self, n_agents=10000, n_quarters=40, random_seed=42):
-        np.random.seed(random_seed)
+    def __init__(self, n_agents=10000, n_quarters=40, random_seed=2):
+        self.rng = np.random.RandomState(random_seed)
         self.n_agents = n_agents
         self.n_quarters = n_quarters
         self.agents: List[Agent] = []
@@ -69,46 +69,46 @@ class OERSimulation:
         
     def initialize_agents(self):
         for i in range(self.n_agents):
-            age = np.random.uniform(24, 45)
-            household_size = max(1, np.random.normal(2.5, 1.3))
+            age = self.rng.uniform(24, 45)
+            household_size = max(1, self.rng.normal(2.5, 1.3))
             
-            quintile = np.random.choice([0, 1, 2, 3, 4], p=[0.20, 0.20, 0.20, 0.20, 0.20])
+            quintile = self.rng.choice([0, 1, 2, 3, 4], p=[0.20, 0.20, 0.20, 0.20, 0.20])
             income_min, income_max = self.income_quintiles[quintile]
-            income = np.random.uniform(income_min, income_max)
+            income = self.rng.uniform(income_min, income_max)
             
-            employment = np.random.choice(['employed', 'unemployed', 'not_in_lf'], 
+            employment = self.rng.choice(['employed', 'unemployed', 'not_in_lf'], 
                                          p=[0.95, 0.03, 0.02])
             
             if quintile == 0:
-                wealth = np.random.uniform(0, 1000)
+                wealth = self.rng.uniform(0, 1000)
             else:
-                wealth = np.random.exponential(scale=5000 * (quintile + 1))
+                wealth = self.rng.exponential(scale=5000 * (quintile + 1))
             
             internet_probs = [0.78, 0.85, 0.90, 0.95, 0.99]
-            internet_access = np.random.random() < internet_probs[quintile]
+            internet_access = self.rng.random() < internet_probs[quintile]
             
-            education_choice = np.random.choice(
+            education_choice = self.rng.choice(
                 list(self.education_levels.keys()),
                 p=[0.08, 0.27, 0.29, 0.24, 0.12]
             )
             education_multiplier = self.education_levels[education_choice]['multiplier']
             income *= education_multiplier
             
-            study_time_base = max(0, np.random.normal(10, 5))
+            study_time_base = max(0, self.rng.normal(10, 5))
             study_time = study_time_base * (1 - 0.4 * (household_size - 2.5) / 1.3)
             study_time = study_time * (1 + 0.2 * (quintile - 2) / 2)
             study_time = max(0, study_time)
             
-            learning_capacity = np.clip(np.random.normal(1.0, 0.15), 0.7, 1.3)
+            learning_capacity = np.clip(self.rng.normal(1.0, 0.15), 0.7, 1.3)
             
-            oer_aware = np.random.random() < 0.35
+            oer_aware = self.rng.random() < 0.35
             oer_engaged = False
             if oer_aware and internet_access:
-                oer_engaged = np.random.random() < 0.15
+                oer_engaged = self.rng.random() < 0.15
             
             engagement_level = 'none'
             if oer_engaged:
-                engagement_level = np.random.choice(
+                engagement_level = self.rng.choice(
                     list(self.engagement_levels.keys()),
                     p=[0.50, 0.30, 0.15, 0.05]
                 )
@@ -232,7 +232,7 @@ class OERSimulation:
         else:
             credential_discount = 0
         
-        random_shock = np.random.normal(1.0, 0.10)
+        random_shock = self.rng.normal(1.0, 0.10)
         
         income_multiplier = (1 + growth_rate + skill_premium + transition_boost - credential_discount)
         agent.income = agent.income * income_multiplier * random_shock
@@ -241,7 +241,7 @@ class OERSimulation:
     def update_employment(self, agent: Agent, quarter: int):
         job_change_prob = self.calculate_job_change_probability(agent)
         
-        if np.random.random() < job_change_prob:
+        if self.rng.random() < job_change_prob:
             if agent.employment_status == 'unemployed':
                 agent.employment_status = 'employed'
                 median_income = np.median([self.income_quintiles[i][0] + self.income_quintiles[i][1] 
@@ -382,9 +382,9 @@ class OERSimulation:
                 quintile_transitions_oer[i] = quintile_transitions_oer[i] / quintile_transitions_oer[i].sum()
         
         sns.heatmap(quintile_transitions_oer, annot=True, fmt='.2f', cmap='YlGnBu', 
-                   xticklabels=['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
-                   yticklabels=['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
-                   ax=axes[0, 0], cbar_kws={'label': 'Probability'})
+                xticklabels=['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
+                yticklabels=['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
+                ax=axes[0, 0], cbar_kws={'label': 'Probability'})
         axes[0, 0].set_title('Quintile Transition Matrix - OER Users', fontsize=14, fontweight='bold')
         axes[0, 0].set_xlabel('Final Quintile')
         axes[0, 0].set_ylabel('Initial Quintile')
@@ -398,9 +398,9 @@ class OERSimulation:
                 quintile_transitions_non[i] = quintile_transitions_non[i] / quintile_transitions_non[i].sum()
         
         sns.heatmap(quintile_transitions_non, annot=True, fmt='.2f', cmap='OrRd', 
-                   xticklabels=['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
-                   yticklabels=['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
-                   ax=axes[0, 1], cbar_kws={'label': 'Probability'})
+                xticklabels=['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
+                yticklabels=['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
+                ax=axes[0, 1], cbar_kws={'label': 'Probability'})
         axes[0, 1].set_title('Quintile Transition Matrix - Non-OER Users', fontsize=14, fontweight='bold')
         axes[0, 1].set_xlabel('Final Quintile')
         axes[0, 1].set_ylabel('Initial Quintile')
@@ -450,51 +450,34 @@ class OERSimulation:
         income_change_oer = oer_users['income_final'] - oer_users['income_initial']
         income_change_non = non_oer_users['income_final'] - non_oer_users['income_initial']
         
-        bp = axes[1, 1].boxplot([income_change_non, income_change_oer], 
-                          labels=['Non-OER Users', 'OER Users'],
-                          patch_artist=True,
-                          widths=0.6)
-        
-        bp['boxes'][0].set_facecolor('#FF6B6B')
-        bp['boxes'][1].set_facecolor('#4ECDC4')
-        
-        for element in ['whiskers', 'fliers', 'means', 'medians', 'caps']:
-            plt.setp(bp[element], color='black', linewidth=1.5)
-        
-        axes[1, 1].set_title('Income Change Distribution', fontsize=14, fontweight='bold')
-        axes[1, 1].set_ylabel('Income Change ($)')
-        axes[1, 1].axhline(0, color='red', linestyle='--', alpha=0.5, linewidth=2)
-        axes[1, 1].grid(True, alpha=0.3, axis='y')
-        axes[1, 1].yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'${x/1000:.0f}K'))
-        
         summary_text = f"""
-SUMMARY STATISTICS
+    Statistics Summary
 
-Total Agents: {len(merged):,}
-OER Users: {len(oer_users):,} ({len(oer_users)/len(merged)*100:.1f}%)
-Non-OER: {len(non_oer_users):,} ({len(non_oer_users)/len(merged)*100:.1f}%)
+    Total Agents: {len(merged):,}
+    OER Users: {len(oer_users):,} ({len(oer_users)/len(merged)*100:.1f}%)
+    Non-OER: {len(non_oer_users):,} ({len(non_oer_users)/len(merged)*100:.1f}%)
 
-UPWARD MOBILITY:
-OER: {(oer_users['quintile_final'] > oer_users['quintile_initial']).sum()}/{len(oer_users)} ({(oer_users['quintile_final'] > oer_users['quintile_initial']).mean()*100:.1f}%)
-Non-OER: {(non_oer_users['quintile_final'] > non_oer_users['quintile_initial']).sum()}/{len(non_oer_users)} ({(non_oer_users['quintile_final'] > non_oer_users['quintile_initial']).mean()*100:.1f}%)
+    UPWARD MOBILITY:
+    OER: {(oer_users['quintile_final'] > oer_users['quintile_initial']).sum()}/{len(oer_users)} ({(oer_users['quintile_final'] > oer_users['quintile_initial']).mean()*100:.1f}%)
+    Non-OER: {(non_oer_users['quintile_final'] > non_oer_users['quintile_initial']).sum()}/{len(non_oer_users)} ({(non_oer_users['quintile_final'] > non_oer_users['quintile_initial']).mean()*100:.1f}%)
 
-MEDIAN INCOME CHANGE:
-OER: ${income_change_oer.median():,.0f}
-Non-OER: ${income_change_non.median():,.0f}
-Difference: ${income_change_oer.median() - income_change_non.median():,.0f}
+    MEDIAN INCOME CHANGE:
+    OER: ${income_change_oer.median():,.0f}
+    Non-OER: ${income_change_non.median():,.0f}
+    Difference: ${income_change_oer.median() - income_change_non.median():,.0f}
 
-AVERAGE SKILLS GAINED:
-OER: {oer_users['skills_final'].mean():.1f} points
-Non-OER: {non_oer_users['skills_final'].mean():.1f} points
+    AVERAGE SKILLS GAINED:
+    OER: {oer_users['skills_final'].mean():.1f} points
+    Non-OER: {non_oer_users['skills_final'].mean():.1f} points
 
-SKILLS THRESHOLD REACHED:
-≥40 points: {(oer_users['skills_final'] >= 40).sum()}/{len(oer_users)} ({(oer_users['skills_final'] >= 40).mean()*100:.1f}%)
-≥60 points: {(oer_users['skills_final'] >= 60).sum()}/{len(oer_users)} ({(oer_users['skills_final'] >= 60).mean()*100:.1f}%)
+    SKILLS THRESHOLD REACHED:
+    ≥40 points: {(oer_users['skills_final'] >= 40).sum()}/{len(oer_users)} ({(oer_users['skills_final'] >= 40).mean()*100:.1f}%)
+    ≥60 points: {(oer_users['skills_final'] >= 60).sum()}/{len(oer_users)} ({(oer_users['skills_final'] >= 60).mean()*100:.1f}%)
         """
         
         axes[1, 2].text(0.05, 0.95, summary_text, transform=axes[1, 2].transAxes,
-                       fontsize=10, verticalalignment='top', fontfamily='monospace',
-                       bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+                    fontsize=10, verticalalignment='top', fontfamily='monospace',
+                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
         axes[1, 2].axis('off')
         
         plt.tight_layout()
