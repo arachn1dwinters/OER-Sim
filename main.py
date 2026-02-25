@@ -77,7 +77,7 @@ class OERSimulation:
             income = self.rng.uniform(income_min, income_max)
             
             employment = self.rng.choice(['employed', 'unemployed', 'not_in_lf'], 
-                                         p=[0.95, 0.03, 0.02])
+                                        p=[0.95, 0.03, 0.02])
             
             if quintile == 0:
                 wealth = self.rng.uniform(0, 1000)
@@ -104,7 +104,10 @@ class OERSimulation:
             oer_aware = self.rng.random() < 0.35
             oer_engaged = False
             if oer_aware and internet_access:
-                oer_engaged = self.rng.random() < 0.15
+                time_factor = min(study_time / 10, 2.0)
+                adoption_prob = 0.15 * time_factor
+                adoption_prob = min(adoption_prob, 0.50)
+                oer_engaged = self.rng.random() < adoption_prob
             
             engagement_level = 'none'
             if oer_engaged:
