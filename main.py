@@ -225,15 +225,7 @@ class OERSimulation:
             decay = agent.quarters_since_job_change * 0.05
             transition_boost = max(0, 0.15 - decay)
         
-        has_degree = agent.education in ['bachelors', 'graduate']
-        if has_degree:
-            credential_discount = 0
-        elif agent.skills >= 60 and agent.signal_completed:
-            credential_discount = 0.05
-        elif agent.skills >= 60:
-            credential_discount = 0.15
-        else:
-            credential_discount = 0
+        credential_discount = 0
         
         random_shock = self.rng.normal(1.0, 0.10)
         
@@ -446,15 +438,49 @@ class OERSimulation:
         axes[1, 0].set_xlabel('Skill Points')
         axes[1, 0].set_ylabel('Number of Agents')
         axes[1, 0].axvline(40, color='red', linestyle='--', linewidth=2, label='Threshold (40)')
-        axes[1, 0].axvline(60, color='orange', linestyle='--', linewidth=2, label='Signal Eligible (60)')
         axes[1, 0].legend()
         axes[1, 0].grid(True, alpha=0.3, axis='y')
         
-        income_change_oer = oer_users['income_final'] - oer_users['income_initial']
-        income_change_non = non_oer_users['income_final'] - non_oer_users['income_initial']
+        oer_skills_by_quintile = []
+        non_oer_skills_by_quintile = []
+        
+        for q in range(5):
+            oer_q = oer_users[oer_users['quintile_initial'] == q]
+            non_oer_q = non_oer_users[non_oer_users['quintile_initial'] == q]
+            
+            if len(oer_q) > 0:
+                oer_skills_by_quintile.append(oer_q['skills_final'].mean())
+            else:
+                oer_skills_by_quintile.append(0)
+            
+            if len(non_oer_q) > 0:
+                non_oer_skills_by_quintile.append(non_oer_q['skills_final'].mean())
+            else:
+                non_oer_skills_by_quintile.append(0)
+        
+        x = np.arange(5)
+        width = 0.35
+        
+        bars1 = axes[1, 1].bar(x - width/2, non_oer_skills_by_quintile, width, label='Non-OER Users', color='#FF6B6B')
+        bars2 = axes[1, 1].bar(x + width/2, oer_skills_by_quintile, width, label='OER Users', color='#4ECDC4')
+        
+        axes[1, 1].set_title('Average Skills Gained by Starting Quintile', fontsize=14, fontweight='bold')
+        axes[1, 1].set_xlabel('Starting Quintile')
+        axes[1, 1].set_ylabel('Average Skill Points')
+        axes[1, 1].set_xticks(x)
+        axes[1, 1].set_xticklabels(['Q1', 'Q2', 'Q3', 'Q4', 'Q5'])
+        axes[1, 1].legend()
+        axes[1, 1].grid(True, alpha=0.3, axis='y')
+        axes[1, 1].axhline(40, color='red', linestyle='--', linewidth=1.5, alpha=0.7, label='Income Threshold (40)')
+        
+        for i, (v1, v2) in enumerate(zip(non_oer_skills_by_quintile, oer_skills_by_quintile)):
+            if v1 > 0:
+                axes[1, 1].text(i - width/2, v1 + 1, f'{v1:.1f}', ha='center', va='bottom', fontsize=9)
+            if v2 > 0:
+                axes[1, 1].text(i + width/2, v2 + 1, f'{v2:.1f}', ha='center', va='bottom', fontsize=9)
         
         summary_text = f"""
-    Statistics Summary
+    SUMMARY STATISTICS
 
     Total Agents: {len(merged):,}
     OER Users: {len(oer_users):,} ({len(oer_users)/len(merged)*100:.1f}%)
@@ -465,9 +491,9 @@ class OERSimulation:
     Non-OER: {(non_oer_users['quintile_final'] > non_oer_users['quintile_initial']).sum()}/{len(non_oer_users)} ({(non_oer_users['quintile_final'] > non_oer_users['quintile_initial']).mean()*100:.1f}%)
 
     MEDIAN INCOME CHANGE:
-    OER: ${income_change_oer.median():,.0f}
-    Non-OER: ${income_change_non.median():,.0f}
-    Difference: ${income_change_oer.median() - income_change_non.median():,.0f}
+    OER: ${(oer_users['income_final'] - oer_users['income_initial']).median():,.0f}
+    Non-OER: ${(non_oer_users['income_final'] - non_oer_users['income_initial']).median():,.0f}
+    Difference: ${(oer_users['income_final'] - oer_users['income_initial']).median() - (non_oer_users['income_final'] - non_oer_users['income_initial']).median():,.0f}
 
     AVERAGE SKILLS GAINED:
     OER: {oer_users['skills_final'].mean():.1f} points
@@ -475,7 +501,6 @@ class OERSimulation:
 
     SKILLS THRESHOLD REACHED:
     ≥40 points: {(oer_users['skills_final'] >= 40).sum()}/{len(oer_users)} ({(oer_users['skills_final'] >= 40).mean()*100:.1f}%)
-    ≥60 points: {(oer_users['skills_final'] >= 60).sum()}/{len(oer_users)} ({(oer_users['skills_final'] >= 60).mean()*100:.1f}%)
         """
         
         axes[1, 2].text(0.05, 0.95, summary_text, transform=axes[1, 2].transAxes,

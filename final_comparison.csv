@@ -6043,7 +6043,7 @@ agent_id,quarter_initial,income_initial,quintile_initial,skills_initial,oer_enga
 6041,0,102069.34404976592,1,0.0,False,False,not_in_lf,40,102069.34404976592,3,0.0,False,False,not_in_lf
 6042,0,474659.9799593341,4,0.0,False,False,employed,40,865097.3428029041,4,0.0,False,False,employed
 6043,0,7324.750811371608,0,0.0,False,False,unemployed,40,540491.0627019253,4,0.0,False,False,employed
-6044,0,149470.651804203,3,0.0,True,False,employed,40,391035633.3869047,4,63.79338534162553,False,True,employed
+6044,0,149470.651804203,3,0.0,True,False,employed,40,1750197705.88082,4,63.79338534162553,False,True,employed
 6045,0,144575.79891597395,3,0.0,False,False,employed,40,262266.3323710387,4,0.0,False,False,employed
 6046,0,117916.22623490835,3,0.0,False,False,employed,40,560805.0613197696,4,0.0,False,False,employed
 6047,0,99185.70434522597,1,0.0,False,False,employed,40,88912.57459979423,2,0.0,False,False,employed
@@ -9994,7 +9994,7 @@ agent_id,quarter_initial,income_initial,quintile_initial,skills_initial,oer_enga
 9992,0,259531.82659704602,4,0.0,False,False,employed,40,698276.7459493733,4,0.0,False,False,employed
 9993,0,670330.9679245269,4,0.0,False,False,employed,40,1513003.475633025,4,0.0,False,False,employed
 9994,0,2979.4652736343614,0,0.0,False,False,employed,40,10081.107826065288,0,0.0,False,False,employed
-9995,0,119776.2267876868,3,0.0,True,False,employed,40,88769429.14165756,4,60.35517210973548,False,True,employed
+9995,0,119776.2267876868,3,0.0,True,False,employed,40,420552817.13678527,4,60.35517210973548,False,True,employed
 9996,0,178406.91617274785,2,0.0,False,False,employed,40,170700.62375074494,4,0.0,False,False,employed
 9997,0,3396.5975768538547,0,0.0,False,False,unemployed,40,197077.04342397454,4,0.0,False,False,employed
 9998,0,471392.1160350728,4,0.0,False,False,employed,40,364634.9154565936,4,0.0,False,False,employed
