@@ -438,46 +438,39 @@ class OERSimulation:
         axes[1, 0].set_xlabel('Skill Points')
         axes[1, 0].set_ylabel('Number of Agents')
         axes[1, 0].axvline(40, color='red', linestyle='--', linewidth=2, label='Threshold (40)')
+        axes[1, 0].axvline(60, color='orange', linestyle='--', linewidth=2, label='High Skills (60)')
         axes[1, 0].legend()
         axes[1, 0].grid(True, alpha=0.3, axis='y')
         
-        oer_skills_by_quintile = []
-        non_oer_skills_by_quintile = []
+        oer_usage_by_quintile = []
         
         for q in range(5):
-            oer_q = oer_users[oer_users['quintile_initial'] == q]
-            non_oer_q = non_oer_users[non_oer_users['quintile_initial'] == q]
-            
-            if len(oer_q) > 0:
-                oer_skills_by_quintile.append(oer_q['skills_final'].mean())
+            q_agents = merged[merged['quintile_initial'] == q]
+            if len(q_agents) > 0:
+                oer_rate = (q_agents['oer_engaged_initial'] == True).mean()
+                oer_usage_by_quintile.append(oer_rate)
             else:
-                oer_skills_by_quintile.append(0)
-            
-            if len(non_oer_q) > 0:
-                non_oer_skills_by_quintile.append(non_oer_q['skills_final'].mean())
-            else:
-                non_oer_skills_by_quintile.append(0)
+                oer_usage_by_quintile.append(0)
         
         x = np.arange(5)
-        width = 0.35
+        bars = axes[1, 1].bar(x, oer_usage_by_quintile, color=['#E74C3C', '#E67E22', '#F39C12', '#52B788', '#4ECDC4'], 
+                            edgecolor='black', linewidth=1.5, alpha=0.8)
         
-        bars1 = axes[1, 1].bar(x - width/2, non_oer_skills_by_quintile, width, label='Non-OER Users', color='#FF6B6B')
-        bars2 = axes[1, 1].bar(x + width/2, oer_skills_by_quintile, width, label='OER Users', color='#4ECDC4')
-        
-        axes[1, 1].set_title('Average Skills Gained by Starting Quintile', fontsize=14, fontweight='bold')
+        axes[1, 1].set_title('OER Adoption Rate by Starting Quintile', fontsize=14, fontweight='bold')
         axes[1, 1].set_xlabel('Starting Quintile')
-        axes[1, 1].set_ylabel('Average Skill Points')
+        axes[1, 1].set_ylabel('OER Adoption Rate')
         axes[1, 1].set_xticks(x)
         axes[1, 1].set_xticklabels(['Q1', 'Q2', 'Q3', 'Q4', 'Q5'])
-        axes[1, 1].legend()
+        axes[1, 1].set_ylim([0, max(oer_usage_by_quintile) * 1.2])
         axes[1, 1].grid(True, alpha=0.3, axis='y')
-        axes[1, 1].axhline(40, color='red', linestyle='--', linewidth=1.5, alpha=0.7, label='Income Threshold (40)')
         
-        for i, (v1, v2) in enumerate(zip(non_oer_skills_by_quintile, oer_skills_by_quintile)):
-            if v1 > 0:
-                axes[1, 1].text(i - width/2, v1 + 1, f'{v1:.1f}', ha='center', va='bottom', fontsize=9)
-            if v2 > 0:
-                axes[1, 1].text(i + width/2, v2 + 1, f'{v2:.1f}', ha='center', va='bottom', fontsize=9)
+        for i, v in enumerate(oer_usage_by_quintile):
+            axes[1, 1].text(i, v + 0.005, f'{v*100:.1f}%', ha='center', va='bottom', fontsize=11, fontweight='bold')
+        
+        overall_rate = (merged['oer_engaged_initial'] == True).mean()
+        axes[1, 1].axhline(overall_rate, color='black', linestyle='--', linewidth=2, alpha=0.7, 
+                        label=f'Overall Rate: {overall_rate*100:.1f}%')
+        axes[1, 1].legend()
         
         summary_text = f"""
     SUMMARY STATISTICS
@@ -501,6 +494,7 @@ class OERSimulation:
 
     SKILLS THRESHOLD REACHED:
     ≥40 points: {(oer_users['skills_final'] >= 40).sum()}/{len(oer_users)} ({(oer_users['skills_final'] >= 40).mean()*100:.1f}%)
+    ≥60 points: {(oer_users['skills_final'] >= 60).sum()}/{len(oer_users)} ({(oer_users['skills_final'] >= 60).mean()*100:.1f}%)
         """
         
         axes[1, 2].text(0.05, 0.95, summary_text, transform=axes[1, 2].transAxes,
