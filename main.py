@@ -438,7 +438,6 @@ class OERSimulation:
         axes[1, 0].set_xlabel('Skill Points')
         axes[1, 0].set_ylabel('Number of Agents')
         axes[1, 0].axvline(40, color='red', linestyle='--', linewidth=2, label='Threshold (40)')
-        axes[1, 0].axvline(60, color='orange', linestyle='--', linewidth=2, label='High Skills (60)')
         axes[1, 0].legend()
         axes[1, 0].grid(True, alpha=0.3, axis='y')
         
